@@ -1,0 +1,13 @@
+api_version = "2024-01"
+
+[[extensions]]
+
+uid = "cec8d210-c2f2-8da8-1868-9e091d964ad68f21c21a"
+
+type = "theme"
+name = "Social Share Snippet"
+handle = "social-share-snippet"
+
+  [[extensions.targeting]]
+  module = "./blocks/share-buttons.liquid"
+  target = "section"

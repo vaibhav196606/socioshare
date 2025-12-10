@@ -1,0 +1,24 @@
+{
+  "name": "SocioShare Buttons",
+  "settings": {
+    "show_whatsapp": "Show WhatsApp",
+    "show_facebook": "Show Facebook",
+    "show_twitter": "Show Twitter/X",
+    "show_pinterest": "Show Pinterest",
+    "show_linkedin": "Show LinkedIn",
+    "show_email": "Show Email",
+    "show_copy": "Show Copy Link",
+    "button_size": "Button Size",
+    "icon_size": "Icon Size",
+    "border_radius": "Border Radius",
+    "button_gap": "Button Gap",
+    "use_brand_colors": "Use Brand Colors",
+    "button_bg_color": "Custom Button Color",
+    "icon_color": "Icon Color",
+    "show_label": "Show Label",
+    "label_text": "Label Text",
+    "font_size": "Label Font Size",
+    "label_color": "Label Color",
+    "alignment": "Alignment"
+  }
+}

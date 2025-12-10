@@ -1,0 +1,22 @@
+{
+  "name": "socioshare",
+  "version": "1.0.0",
+  "description": "Shopify app for social media product sharing",
+  "private": true,
+  "scripts": {
+    "dev": "shopify app dev",
+    "build": "shopify app build",
+    "deploy": "shopify app deploy",
+    "info": "shopify app info"
+  },
+  "author": "",
+  "license": "ISC",
+  "workspaces": [
+    "web",
+    "web/frontend"
+  ],
+  "devDependencies": {
+    "@shopify/cli": "^3.50.0",
+    "@shopify/app": "^3.50.0"
+  }
+}

@@ -1,0 +1,24 @@
+# Learn more about configuring your app at https://shopify.dev/docs/apps/tools/cli/configuration
+
+client_id = "c4416095157e75b8da55e1037976dc63"
+name = "SocioShare"
+application_url = "https://vaibhav196606.github.io/socioshare"
+embedded = false
+
+[build]
+automatically_update_urls_on_dev = false
+
+[webhooks]
+api_version = "2024-01"
+
+  [webhooks.privacy_compliance]
+  customer_deletion_url = "https://vaibhav196606.github.io/socioshare/webhooks/customer-deletion"
+  customer_data_request_url = "https://vaibhav196606.github.io/socioshare/webhooks/customer-data-request"
+  shop_deletion_url = "https://vaibhav196606.github.io/socioshare/webhooks/shop-deletion"
+
+[access_scopes]
+# Learn more at https://shopify.dev/docs/apps/tools/cli/configuration#access_scopes
+scopes = "read_products"
+
+[auth]
+redirect_urls = [ "https://vaibhav196606.github.io/socioshare/auth/callback" ]
