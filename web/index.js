@@ -17,11 +17,10 @@ const shopify = shopifyApp({
   api: {
     apiKey: process.env.SHOPIFY_API_KEY,
     apiSecretKey: process.env.SHOPIFY_API_SECRET,
-    scopes: ["read_products"],
-    hostName: process.env.SHOPIFY_APP_URL?.replace(/https?:\/\//, "") || "localhost:3000",
+    scopes: process.env.SCOPES?.split(",") || ["read_products"],
+    hostName: process.env.HOST?.replace(/https?:\/\//, "") || "localhost:3000",
     apiVersion: LATEST_API_VERSION,
-    restResources: {},
-    billing: undefined,
+    isEmbeddedApp: true,
   },
   auth: {
     path: "/api/auth",
