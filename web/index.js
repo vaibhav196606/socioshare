@@ -67,8 +67,15 @@ app.post(
   })
 );
 
+// Apply authentication to all API routes EXCEPT webhooks
+app.use("/api/*", (req, res, next) => {
+  if (req.path.startsWith("/api/webhooks")) {
+    return next();
+  }
+  return shopify.validateAuthenticatedSession()(req, res, next);
+});
+
 app.use(express.json());
-app.use("/api/*", shopify.validateAuthenticatedSession());
 
 // API endpoints
 app.get("/api/products", async (req, res) => {
