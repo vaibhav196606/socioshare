@@ -46,41 +46,29 @@ app.get(
   shopify.redirectToShopifyOrAppRoot()
 );
 
-// Compliance webhook handlers (GDPR)
-const webhookHandlers = {
-  CUSTOMERS_DATA_REQUEST: {
-    deliveryMethod: "http",
-    callbackUrl: "/api/webhooks",
-    callback: async (topic, shop, body) => {
-      console.log(`Received ${topic} webhook for ${shop}`);
-      // App doesn't store customer data, nothing to return
-    },
-  },
-  CUSTOMERS_REDACT: {
-    deliveryMethod: "http",
-    callbackUrl: "/api/webhooks",
-    callback: async (topic, shop, body) => {
-      console.log(`Received ${topic} webhook for ${shop}`);
-      // App doesn't store customer data, nothing to delete
-    },
-  },
-  SHOP_REDACT: {
-    deliveryMethod: "http",
-    callbackUrl: "/api/webhooks",
-    callback: async (topic, shop, body) => {
-      console.log(`Received ${topic} webhook for ${shop}`);
-      // App doesn't store shop data, nothing to delete
-    },
-  },
-};
-
+// Webhook handlers for GDPR compliance
 app.post(
   shopify.config.webhooks.path,
-  shopify.processWebhooks({ webhookHandlers })
+  shopify.processWebhooks({ 
+    webhookHandlers: {
+      CUSTOMERS_DATA_REQUEST: async (topic, shop, body, webhookId) => {
+        console.log(`GDPR webhook: ${topic} from ${shop}`);
+        // App doesn't store customer data
+      },
+      CUSTOMERS_REDACT: async (topic, shop, body, webhookId) => {
+        console.log(`GDPR webhook: ${topic} from ${shop}`);
+        // App doesn't store customer data
+      },
+      SHOP_REDACT: async (topic, shop, body, webhookId) => {
+        console.log(`GDPR webhook: ${topic} from ${shop}`);
+        // App doesn't store shop data
+      },
+    }
+  })
 );
 
-app.use("/api/*", shopify.validateAuthenticatedSession());
 app.use(express.json());
+app.use("/api/*", shopify.validateAuthenticatedSession());
 
 // API endpoints
 app.get("/api/products", async (req, res) => {
