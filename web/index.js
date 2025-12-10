@@ -1,4 +1,5 @@
-import { LATEST_API_VERSION, shopifyApp } from "@shopify/shopify-app-express";
+import shopifyAppExpress from "@shopify/shopify-app-express";
+const { LATEST_API_VERSION, shopifyApp } = shopifyAppExpress;
 import { SQLiteSessionStorage } from "@shopify/shopify-app-session-storage-sqlite";
 import express from "express";
 import { join } from "path";
