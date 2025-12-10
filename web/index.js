@@ -10,15 +10,20 @@ import compression from "compression";
 const PORT = parseInt(process.env.BACKEND_PORT || process.env.PORT || "3000", 10);
 const isProduction = process.env.NODE_ENV === "production";
 
-// For Railway deployment
-const HOST = process.env.HOST || "0.0.0.0";
+// Server always binds to 0.0.0.0 for Railway
+const SERVER_HOST = "0.0.0.0";
+
+// Shopify app URL (without protocol)
+const SHOPIFY_HOST = process.env.HOST?.replace(/https?:\/\//, "") || 
+                     process.env.RAILWAY_PUBLIC_DOMAIN || 
+                     "localhost:3000";
 
 const shopify = shopifyApp({
   api: {
     apiKey: process.env.SHOPIFY_API_KEY,
     apiSecretKey: process.env.SHOPIFY_API_SECRET,
     scopes: process.env.SCOPES?.split(",") || ["read_products"],
-    hostName: process.env.HOST?.replace(/https?:\/\//, "") || "localhost:3000",
+    hostName: SHOPIFY_HOST,
     apiVersion: LATEST_API_VERSION,
     isEmbeddedApp: true,
   },
@@ -126,6 +131,7 @@ if (isProduction) {
   });
 }
 
-app.listen(PORT, HOST, () => {
-  console.log(`SocioShare server running on http://${HOST}:${PORT}`);
+app.listen(PORT, SERVER_HOST, () => {
+  console.log(`SocioShare server running on http://${SERVER_HOST}:${PORT}`);
+  console.log(`Shopify app configured for: ${SHOPIFY_HOST}`);
 });
