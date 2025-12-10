@@ -39,6 +39,7 @@ const shopify = shopifyApp({
 
 const app = express();
 
+// Auth routes
 app.get(shopify.config.auth.path, shopify.auth.begin());
 app.get(
   shopify.config.auth.callbackPath,
@@ -46,7 +47,7 @@ app.get(
   shopify.redirectToShopifyOrAppRoot()
 );
 
-// Webhook handlers for GDPR compliance
+// Webhook handlers - MUST be before any authentication middleware
 app.post(
   shopify.config.webhooks.path,
   shopify.processWebhooks({ 
@@ -67,18 +68,10 @@ app.post(
   })
 );
 
-// Apply authentication to all API routes EXCEPT webhooks
-app.use("/api/*", (req, res, next) => {
-  if (req.path.startsWith("/api/webhooks")) {
-    return next();
-  }
-  return shopify.validateAuthenticatedSession()(req, res, next);
-});
-
 app.use(express.json());
 
-// API endpoints
-app.get("/api/products", async (req, res) => {
+// API endpoints with authentication
+app.get("/api/products", shopify.validateAuthenticatedSession(), async (req, res) => {
   try {
     const client = new shopify.api.clients.Rest({
       session: res.locals.shopify.session,
@@ -91,7 +84,7 @@ app.get("/api/products", async (req, res) => {
   }
 });
 
-app.get("/api/settings", async (req, res) => {
+app.get("/api/settings", shopify.validateAuthenticatedSession(), async (req, res) => {
   // Return default settings - in production, store these in a database
   res.status(200).send({
     platforms: ["whatsapp", "facebook", "twitter", "pinterest", "linkedin"],
@@ -101,7 +94,7 @@ app.get("/api/settings", async (req, res) => {
   });
 });
 
-app.post("/api/settings", async (req, res) => {
+app.post("/api/settings", shopify.validateAuthenticatedSession(), async (req, res) => {
   // Save settings - in production, store these in a database
   const settings = req.body;
   console.log("Settings saved:", settings);
