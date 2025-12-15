@@ -18,15 +18,32 @@ import {
   SettingsIcon,
 } from "@shopify/polaris-icons";
 
-// Railway backend URL - use direct XHR to bypass App Bridge fetch interception
+// Railway backend URL
 const API_BASE = "https://web-production-ffa40.up.railway.app";
 
-// Direct XHR request to bypass App Bridge fetch interception
-const apiRequest = (method, url, body = null) => {
+// Get session token from App Bridge
+const getSessionToken = async () => {
+  try {
+    if (window.shopify && window.shopify.idToken) {
+      return await window.shopify.idToken();
+    }
+  } catch (e) {
+    // Fallback if App Bridge not available
+  }
+  return null;
+};
+
+// API request with session token authentication
+const apiRequest = async (method, url, body = null) => {
+  const token = await getSessionToken();
+  
   return new Promise((resolve, reject) => {
     const xhr = new XMLHttpRequest();
     xhr.open(method, url, true);
     xhr.setRequestHeader("Content-Type", "application/json");
+    if (token) {
+      xhr.setRequestHeader("Authorization", `Bearer ${token}`);
+    }
     xhr.onload = () => {
       if (xhr.status >= 200 && xhr.status < 300) {
         try {
