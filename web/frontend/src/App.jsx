@@ -21,51 +21,31 @@ import {
 // Railway backend URL
 const API_BASE = "https://web-production-ffa40.up.railway.app";
 
-// Get session token from App Bridge (for Shopify's embedded app checks)
-const getSessionToken = () => {
-  return new Promise((resolve) => {
-    try {
-      if (window.shopify && window.shopify.idToken) {
-        window.shopify.idToken().then(resolve).catch(() => resolve(null));
-      } else {
-        resolve(null);
-      }
-    } catch (e) {
-      resolve(null);
-    }
-  });
-};
-
-// API request with session token authentication
+// API request - simple XHR that works in embedded iframe
 const apiRequest = (method, url, body = null) => {
-  return getSessionToken().then((token) => {
-    return new Promise((resolve, reject) => {
-      const xhr = new XMLHttpRequest();
-      xhr.open(method, url, true);
-      xhr.setRequestHeader("Content-Type", "application/json");
-      if (token) {
-        xhr.setRequestHeader("Authorization", `Bearer ${token}`);
-      }
-      xhr.onload = () => {
-        if (xhr.status >= 200 && xhr.status < 300) {
-          try {
-            resolve({ ok: true, status: xhr.status, data: JSON.parse(xhr.responseText) });
-          } catch (e) {
-            resolve({ ok: true, status: xhr.status, data: xhr.responseText });
-          }
-        } else {
-          resolve({ ok: false, status: xhr.status, data: xhr.responseText });
+  return new Promise((resolve, reject) => {
+    const xhr = new XMLHttpRequest();
+    xhr.open(method, url, true);
+    xhr.setRequestHeader("Content-Type", "application/json");
+    xhr.onload = () => {
+      if (xhr.status >= 200 && xhr.status < 300) {
+        try {
+          resolve({ ok: true, status: xhr.status, data: JSON.parse(xhr.responseText) });
+        } catch (e) {
+          resolve({ ok: true, status: xhr.status, data: xhr.responseText });
         }
-      };
-      xhr.onerror = () => reject(new Error("Network error"));
-      xhr.ontimeout = () => reject(new Error("Request timeout"));
-      xhr.timeout = 10000;
-      if (body) {
-        xhr.send(JSON.stringify(body));
       } else {
-        xhr.send();
+        resolve({ ok: false, status: xhr.status, data: xhr.responseText });
       }
-    });
+    };
+    xhr.onerror = () => reject(new Error("Network error"));
+    xhr.ontimeout = () => reject(new Error("Request timeout"));
+    xhr.timeout = 10000;
+    if (body) {
+      xhr.send(JSON.stringify(body));
+    } else {
+      xhr.send();
+    }
   });
 };
 
