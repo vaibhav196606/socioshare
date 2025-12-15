@@ -17,7 +17,21 @@ import {
   ShareIcon,
   SettingsIcon,
 } from "@shopify/polaris-icons";
-import { useAuthenticatedFetch } from "@shopify/app-bridge-react";
+
+// Custom hook for authenticated fetch using App Bridge
+function useAuthenticatedFetch() {
+  return useCallback(async (url, options = {}) => {
+    const response = await fetch(url, {
+      ...options,
+      headers: {
+        ...options.headers,
+        "Content-Type": "application/json",
+      },
+      credentials: "include",
+    });
+    return response;
+  }, []);
+}
 
 const SOCIAL_PLATFORMS = [
   { id: "whatsapp", label: "WhatsApp", color: "#25D366" },
