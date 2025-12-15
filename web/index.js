@@ -3,7 +3,7 @@ const { LATEST_API_VERSION, shopifyApp } = shopifyAppExpress;
 import { SQLiteSessionStorage } from "@shopify/shopify-app-session-storage-sqlite";
 import express from "express";
 import { join } from "path";
-import { readFileSync } from "fs";
+import { readFileSync, writeFileSync, existsSync } from "fs";
 import serveStatic from "serve-static";
 import compression from "compression";
 
@@ -85,20 +85,42 @@ app.get("/api/products", shopify.validateAuthenticatedSession(), async (req, res
 });
 
 app.get("/api/settings", shopify.validateAuthenticatedSession(), async (req, res) => {
-  // Return default settings - in production, store these in a database
-  res.status(200).send({
+  const shop = res.locals.shopify.session.shop;
+  const settingsFile = `settings_${shop.replace(/[^a-zA-Z0-9]/g, '_')}.json`;
+  
+  const defaultSettings = {
     platforms: ["whatsapp", "facebook", "twitter", "pinterest", "linkedin"],
     buttonStyle: "icon-only",
     buttonSize: "medium",
     buttonColor: "default"
-  });
+  };
+  
+  try {
+    if (existsSync(settingsFile)) {
+      const savedSettings = JSON.parse(readFileSync(settingsFile, 'utf8'));
+      res.status(200).send({ ...defaultSettings, ...savedSettings });
+    } else {
+      res.status(200).send(defaultSettings);
+    }
+  } catch (error) {
+    console.error("Error reading settings:", error);
+    res.status(200).send(defaultSettings);
+  }
 });
 
 app.post("/api/settings", shopify.validateAuthenticatedSession(), async (req, res) => {
-  // Save settings - in production, store these in a database
+  const shop = res.locals.shopify.session.shop;
+  const settingsFile = `settings_${shop.replace(/[^a-zA-Z0-9]/g, '_')}.json`;
   const settings = req.body;
-  console.log("Settings saved:", settings);
-  res.status(200).send({ success: true });
+  
+  try {
+    writeFileSync(settingsFile, JSON.stringify(settings, null, 2));
+    console.log(`Settings saved for ${shop}:`, settings);
+    res.status(200).send({ success: true });
+  } catch (error) {
+    console.error("Error saving settings:", error);
+    res.status(500).send({ success: false, error: "Failed to save settings" });
+  }
 });
 
 // Serve static frontend in production
