@@ -66,7 +66,7 @@ const getShopFromUrl = () => {
       const match = decoded.match(/([^/]+\.myshopify\.com)/);
       if (match) return match[1];
     } catch (e) {
-      console.error("Failed to decode host:", e);
+      // Ignore decode errors
     }
   }
   
@@ -107,36 +107,25 @@ export default function App() {
   const [buttonSize, setButtonSize] = useState("medium");
   const [saved, setSaved] = useState(false);
   const [loading, setLoading] = useState(true);
-  const [loadStatus, setLoadStatus] = useState("loading...");
-  const [saveStatus, setSaveStatus] = useState("");
 
   // Load settings on mount
   useEffect(() => {
     const loadSettings = async () => {
       if (!shop) {
-        console.log("No shop found, skipping settings load");
-        setLoadStatus("No shop found in URL");
         setLoading(false);
         return;
       }
       try {
         const apiUrl = `${API_BASE}/api/settings?shop=${encodeURIComponent(shop)}`;
-        console.log("Loading settings from:", apiUrl);
-        setLoadStatus(`Fetching...`);
         const result = await apiRequest("GET", apiUrl);
-        console.log("Load response:", result);
-        setLoadStatus(`Response: ${result.status}`);
         if (result.ok && result.data) {
           const data = result.data;
-          console.log("Loaded settings:", data);
           if (data.platforms) setSelectedPlatforms(data.platforms);
           if (data.buttonStyle) setButtonStyle(data.buttonStyle);
           if (data.buttonSize) setButtonSize(data.buttonSize);
-          setLoadStatus(`Loaded! Shop: ${shop}`);
         }
       } catch (error) {
-        console.error("Failed to load settings:", error);
-        setLoadStatus(`Error: ${error.message}`);
+        // Silently fail - use defaults
       } finally {
         setLoading(false);
       }
@@ -157,33 +146,20 @@ export default function App() {
   );
 
   const handleSave = useCallback(async () => {
-    if (!shop) {
-      console.error("No shop found in URL");
-      setSaveStatus("Error: No shop found");
-      return;
-    }
+    if (!shop) return;
     try {
-      console.log("Saving settings for shop:", shop);
-      setSaveStatus("Saving...");
       const apiUrl = `${API_BASE}/api/settings?shop=${encodeURIComponent(shop)}`;
-      console.log("API URL:", apiUrl);
       const result = await apiRequest("POST", apiUrl, {
         platforms: selectedPlatforms,
         buttonStyle,
         buttonSize,
       });
-      console.log("Save response:", result);
-      setSaveStatus(`Response: ${result.status}`);
       if (result.ok) {
         setSaved(true);
-        setSaveStatus("Saved successfully!");
         setTimeout(() => setSaved(false), 3000);
-      } else {
-        setSaveStatus("Save failed: " + JSON.stringify(result.data));
       }
     } catch (error) {
-      console.error("Failed to save settings:", error);
-      setSaveStatus("Error: " + error.message);
+      // Silently fail
     }
   }, [shop, selectedPlatforms, buttonStyle, buttonSize]);
 
@@ -197,15 +173,6 @@ export default function App() {
       }}
     >
       <Layout>
-        {/* Debug status banner */}
-        <Layout.Section>
-          <Banner tone="info" title="API Status">
-            <p>Shop: {shop || "Not found"}</p>
-            <p>Load: {loadStatus}</p>
-            {saveStatus && <p>Save: {saveStatus}</p>}
-          </Banner>
-        </Layout.Section>
-
         {saved && (
           <Layout.Section>
             <Banner
