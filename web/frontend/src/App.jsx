@@ -18,6 +18,37 @@ import {
   SettingsIcon,
 } from "@shopify/polaris-icons";
 
+// Railway backend URL - use direct XHR to bypass App Bridge fetch interception
+const API_BASE = "https://web-production-ffa40.up.railway.app";
+
+// Direct XHR request to bypass App Bridge fetch interception
+const apiRequest = (method, url, body = null) => {
+  return new Promise((resolve, reject) => {
+    const xhr = new XMLHttpRequest();
+    xhr.open(method, url, true);
+    xhr.setRequestHeader("Content-Type", "application/json");
+    xhr.onload = () => {
+      if (xhr.status >= 200 && xhr.status < 300) {
+        try {
+          resolve({ ok: true, status: xhr.status, data: JSON.parse(xhr.responseText) });
+        } catch (e) {
+          resolve({ ok: true, status: xhr.status, data: xhr.responseText });
+        }
+      } else {
+        resolve({ ok: false, status: xhr.status, data: xhr.responseText });
+      }
+    };
+    xhr.onerror = () => reject(new Error("Network error"));
+    xhr.ontimeout = () => reject(new Error("Request timeout"));
+    xhr.timeout = 10000;
+    if (body) {
+      xhr.send(JSON.stringify(body));
+    } else {
+      xhr.send();
+    }
+  });
+};
+
 // Get shop from URL params (check multiple possible params)
 const getShopFromUrl = () => {
   const params = new URLSearchParams(window.location.search);
@@ -89,15 +120,14 @@ export default function App() {
         return;
       }
       try {
-        // Use relative URL since we're served from the same origin
-        const apiUrl = `/api/settings?shop=${encodeURIComponent(shop)}`;
+        const apiUrl = `${API_BASE}/api/settings?shop=${encodeURIComponent(shop)}`;
         console.log("Loading settings from:", apiUrl);
-        setLoadStatus(`Fetching from: ${apiUrl}`);
-        const response = await fetch(apiUrl);
-        console.log("Load response status:", response.status);
-        setLoadStatus(`Response: ${response.status}`);
-        if (response.ok) {
-          const data = await response.json();
+        setLoadStatus(`Fetching...`);
+        const result = await apiRequest("GET", apiUrl);
+        console.log("Load response:", result);
+        setLoadStatus(`Response: ${result.status}`);
+        if (result.ok && result.data) {
+          const data = result.data;
           console.log("Loaded settings:", data);
           if (data.platforms) setSelectedPlatforms(data.platforms);
           if (data.buttonStyle) setButtonStyle(data.buttonStyle);
@@ -135,36 +165,21 @@ export default function App() {
     try {
       console.log("Saving settings for shop:", shop);
       setSaveStatus("Saving...");
-      // Use relative URL since we're served from the same origin
-      const apiUrl = `/api/settings?shop=${encodeURIComponent(shop)}`;
+      const apiUrl = `${API_BASE}/api/settings?shop=${encodeURIComponent(shop)}`;
       console.log("API URL:", apiUrl);
-      const response = await fetch(apiUrl, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          platforms: selectedPlatforms,
-          buttonStyle,
-          buttonSize,
-        }),
+      const result = await apiRequest("POST", apiUrl, {
+        platforms: selectedPlatforms,
+        buttonStyle,
+        buttonSize,
       });
-      console.log("Save response status:", response.status);
-      setSaveStatus(`Response: ${response.status}`);
-      const text = await response.text();
-      console.log("Save response text:", text);
-      let data;
-      try {
-        data = JSON.parse(text);
-      } catch (e) {
-        setSaveStatus("Error: API returned non-JSON");
-        return;
-      }
-      console.log("Save response data:", data);
-      if (response.ok) {
+      console.log("Save response:", result);
+      setSaveStatus(`Response: ${result.status}`);
+      if (result.ok) {
         setSaved(true);
         setSaveStatus("Saved successfully!");
         setTimeout(() => setSaved(false), 3000);
       } else {
-        setSaveStatus("Save failed: " + JSON.stringify(data));
+        setSaveStatus("Save failed: " + JSON.stringify(result.data));
       }
     } catch (error) {
       console.error("Failed to save settings:", error);
