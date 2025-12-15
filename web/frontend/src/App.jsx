@@ -88,7 +88,10 @@ export default function App() {
       try {
         const apiUrl = `https://web-production-ffa40.up.railway.app/api/settings?shop=${encodeURIComponent(shop)}`;
         console.log("Loading settings from:", apiUrl);
-        const response = await fetch(apiUrl);
+        const response = await fetch(apiUrl, {
+          mode: "cors",
+          credentials: "omit",
+        });
         console.log("Load response status:", response.status);
         if (response.ok) {
           const data = await response.json();
@@ -130,6 +133,8 @@ export default function App() {
       console.log("API URL:", apiUrl);
       const response = await fetch(apiUrl, {
         method: "POST",
+        mode: "cors",
+        credentials: "omit",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           platforms: selectedPlatforms,
