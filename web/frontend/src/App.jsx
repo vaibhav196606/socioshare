@@ -81,13 +81,18 @@ export default function App() {
   useEffect(() => {
     const loadSettings = async () => {
       if (!shop) {
+        console.log("No shop found, skipping settings load");
         setLoading(false);
         return;
       }
       try {
-        const response = await fetch(`/api/settings?shop=${encodeURIComponent(shop)}`);
+        const apiUrl = `https://web-production-ffa40.up.railway.app/api/settings?shop=${encodeURIComponent(shop)}`;
+        console.log("Loading settings from:", apiUrl);
+        const response = await fetch(apiUrl);
+        console.log("Load response status:", response.status);
         if (response.ok) {
           const data = await response.json();
+          console.log("Loaded settings:", data);
           if (data.platforms) setSelectedPlatforms(data.platforms);
           if (data.buttonStyle) setButtonStyle(data.buttonStyle);
           if (data.buttonSize) setButtonSize(data.buttonSize);
@@ -121,7 +126,9 @@ export default function App() {
     }
     try {
       console.log("Saving settings for shop:", shop);
-      const response = await fetch(`/api/settings?shop=${encodeURIComponent(shop)}`, {
+      const apiUrl = `https://web-production-ffa40.up.railway.app/api/settings?shop=${encodeURIComponent(shop)}`;
+      console.log("API URL:", apiUrl);
+      const response = await fetch(apiUrl, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -131,7 +138,15 @@ export default function App() {
         }),
       });
       console.log("Save response status:", response.status);
-      const data = await response.json();
+      const text = await response.text();
+      console.log("Save response text:", text);
+      let data;
+      try {
+        data = JSON.parse(text);
+      } catch (e) {
+        alert("API returned non-JSON: " + text.substring(0, 200));
+        return;
+      }
       console.log("Save response data:", data);
       if (response.ok) {
         setSaved(true);
@@ -271,4 +286,3 @@ export default function App() {
     </Page>
   );
 }
-//
