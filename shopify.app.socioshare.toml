@@ -2,8 +2,8 @@
 
 client_id = "c4416095157e75b8da55e1037976dc63"
 name = "SocioShare"
-application_url = "https://vaibhav196606.github.io/socioshare"
-embedded = false
+application_url = "https://web-production-ffa40.up.railway.app"
+embedded = true
 
 [build]
 automatically_update_urls_on_dev = false
@@ -12,13 +12,13 @@ automatically_update_urls_on_dev = false
 api_version = "2024-01"
 
   [webhooks.privacy_compliance]
-  customer_deletion_url = "https://vaibhav196606.github.io/socioshare/webhooks/customer-deletion"
-  customer_data_request_url = "https://vaibhav196606.github.io/socioshare/webhooks/customer-data-request"
-  shop_deletion_url = "https://vaibhav196606.github.io/socioshare/webhooks/shop-deletion"
+  customer_deletion_url = "https://web-production-ffa40.up.railway.app/api/webhooks/customers/data_request"
+  customer_data_request_url = "https://web-production-ffa40.up.railway.app/api/webhooks/customers/redact"
+  shop_deletion_url = "https://web-production-ffa40.up.railway.app/api/webhooks/shop/redact"
 
 [access_scopes]
 # Learn more at https://shopify.dev/docs/apps/tools/cli/configuration#access_scopes
 scopes = "read_products"
 
 [auth]
-redirect_urls = [ "https://vaibhav196606.github.io/socioshare/auth/callback" ]
+redirect_urls = [ "https://web-production-ffa40.up.railway.app/api/auth/callback" ]

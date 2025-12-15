@@ -1,4 +1,4 @@
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import {
   Page,
   Layout,
@@ -17,6 +17,7 @@ import {
   ShareIcon,
   SettingsIcon,
 } from "@shopify/polaris-icons";
+import { useAuthenticatedFetch } from "@shopify/app-bridge-react";
 
 const SOCIAL_PLATFORMS = [
   { id: "whatsapp", label: "WhatsApp", color: "#25D366" },
@@ -40,6 +41,7 @@ const BUTTON_SIZES = [
 ];
 
 export default function App() {
+  const fetch = useAuthenticatedFetch();
   const [selectedPlatforms, setSelectedPlatforms] = useState([
     "whatsapp",
     "facebook",
@@ -50,6 +52,27 @@ export default function App() {
   const [buttonStyle, setButtonStyle] = useState("icon-only");
   const [buttonSize, setButtonSize] = useState("medium");
   const [saved, setSaved] = useState(false);
+  const [loading, setLoading] = useState(true);
+
+  // Load settings on mount
+  useEffect(() => {
+    const loadSettings = async () => {
+      try {
+        const response = await fetch("/api/settings");
+        if (response.ok) {
+          const data = await response.json();
+          if (data.platforms) setSelectedPlatforms(data.platforms);
+          if (data.buttonStyle) setButtonStyle(data.buttonStyle);
+          if (data.buttonSize) setButtonSize(data.buttonSize);
+        }
+      } catch (error) {
+        console.error("Failed to load settings:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    loadSettings();
+  }, [fetch]);
 
   const handlePlatformChange = useCallback(
     (platformId) => {
