@@ -1,0 +1,9 @@
+{
+  "root": "web/",
+  "build": {
+    "command": "cd web && npm install && npm run build"
+  },
+  "start": {
+    "command": "cd web && npm start"
+  }
+}
