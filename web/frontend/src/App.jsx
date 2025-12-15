@@ -89,13 +89,11 @@ export default function App() {
         return;
       }
       try {
-        const apiUrl = `https://web-production-ffa40.up.railway.app/api/settings?shop=${encodeURIComponent(shop)}`;
+        // Use relative URL since we're served from the same origin
+        const apiUrl = `/api/settings?shop=${encodeURIComponent(shop)}`;
         console.log("Loading settings from:", apiUrl);
         setLoadStatus(`Fetching from: ${apiUrl}`);
-        const response = await fetch(apiUrl, {
-          mode: "cors",
-          credentials: "omit",
-        });
+        const response = await fetch(apiUrl);
         console.log("Load response status:", response.status);
         setLoadStatus(`Response: ${response.status}`);
         if (response.ok) {
@@ -137,12 +135,11 @@ export default function App() {
     try {
       console.log("Saving settings for shop:", shop);
       setSaveStatus("Saving...");
-      const apiUrl = `https://web-production-ffa40.up.railway.app/api/settings?shop=${encodeURIComponent(shop)}`;
+      // Use relative URL since we're served from the same origin
+      const apiUrl = `/api/settings?shop=${encodeURIComponent(shop)}`;
       console.log("API URL:", apiUrl);
       const response = await fetch(apiUrl, {
         method: "POST",
-        mode: "cors",
-        credentials: "omit",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           platforms: selectedPlatforms,
