@@ -18,10 +18,28 @@ import {
   SettingsIcon,
 } from "@shopify/polaris-icons";
 
-// Get shop from URL params
+// Get shop from URL params (check multiple possible params)
 const getShopFromUrl = () => {
   const params = new URLSearchParams(window.location.search);
-  return params.get("shop") || "";
+  
+  // Direct shop param
+  let shop = params.get("shop");
+  if (shop) return shop;
+  
+  // Decode from host param (base64 encoded in embedded apps)
+  const host = params.get("host");
+  if (host) {
+    try {
+      const decoded = atob(host);
+      // Format: "shop-name.myshopify.com/admin"
+      const match = decoded.match(/([^/]+\.myshopify\.com)/);
+      if (match) return match[1];
+    } catch (e) {
+      console.error("Failed to decode host:", e);
+    }
+  }
+  
+  return "";
 };
 
 const SOCIAL_PLATFORMS = [
@@ -98,9 +116,11 @@ export default function App() {
   const handleSave = useCallback(async () => {
     if (!shop) {
       console.error("No shop found in URL");
+      alert("Error: No shop found in URL. Shop param: " + shop);
       return;
     }
     try {
+      console.log("Saving settings for shop:", shop);
       const response = await fetch(`/api/settings?shop=${encodeURIComponent(shop)}`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -110,12 +130,18 @@ export default function App() {
           buttonSize,
         }),
       });
+      console.log("Save response status:", response.status);
+      const data = await response.json();
+      console.log("Save response data:", data);
       if (response.ok) {
         setSaved(true);
         setTimeout(() => setSaved(false), 3000);
+      } else {
+        alert("Save failed: " + JSON.stringify(data));
       }
     } catch (error) {
       console.error("Failed to save settings:", error);
+      alert("Save error: " + error.message);
     }
   }, [shop, selectedPlatforms, buttonStyle, buttonSize]);
 
