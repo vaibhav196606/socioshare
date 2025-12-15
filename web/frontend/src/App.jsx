@@ -18,20 +18,11 @@ import {
   SettingsIcon,
 } from "@shopify/polaris-icons";
 
-// Custom hook for authenticated fetch using App Bridge
-function useAuthenticatedFetch() {
-  return useCallback(async (url, options = {}) => {
-    const response = await fetch(url, {
-      ...options,
-      headers: {
-        ...options.headers,
-        "Content-Type": "application/json",
-      },
-      credentials: "include",
-    });
-    return response;
-  }, []);
-}
+// Get shop from URL params
+const getShopFromUrl = () => {
+  const params = new URLSearchParams(window.location.search);
+  return params.get("shop") || "";
+};
 
 const SOCIAL_PLATFORMS = [
   { id: "whatsapp", label: "WhatsApp", color: "#25D366" },
@@ -55,7 +46,7 @@ const BUTTON_SIZES = [
 ];
 
 export default function App() {
-  const fetch = useAuthenticatedFetch();
+  const shop = getShopFromUrl();
   const [selectedPlatforms, setSelectedPlatforms] = useState([
     "whatsapp",
     "facebook",
@@ -71,8 +62,12 @@ export default function App() {
   // Load settings on mount
   useEffect(() => {
     const loadSettings = async () => {
+      if (!shop) {
+        setLoading(false);
+        return;
+      }
       try {
-        const response = await fetch("/api/settings");
+        const response = await fetch(`/api/settings?shop=${encodeURIComponent(shop)}`);
         if (response.ok) {
           const data = await response.json();
           if (data.platforms) setSelectedPlatforms(data.platforms);
@@ -86,7 +81,7 @@ export default function App() {
       }
     };
     loadSettings();
-  }, [fetch]);
+  }, [shop]);
 
   const handlePlatformChange = useCallback(
     (platformId) => {
@@ -101,8 +96,12 @@ export default function App() {
   );
 
   const handleSave = useCallback(async () => {
+    if (!shop) {
+      console.error("No shop found in URL");
+      return;
+    }
     try {
-      const response = await fetch("/api/settings", {
+      const response = await fetch(`/api/settings?shop=${encodeURIComponent(shop)}`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -118,7 +117,7 @@ export default function App() {
     } catch (error) {
       console.error("Failed to save settings:", error);
     }
-  }, [selectedPlatforms, buttonStyle, buttonSize]);
+  }, [shop, selectedPlatforms, buttonStyle, buttonSize]);
 
   return (
     <Page
