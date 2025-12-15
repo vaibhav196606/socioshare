@@ -6,6 +6,7 @@ import { join } from "path";
 import { readFileSync, writeFileSync, existsSync } from "fs";
 import serveStatic from "serve-static";
 import compression from "compression";
+import cors from "cors";
 
 const PORT = parseInt(process.env.BACKEND_PORT || process.env.PORT || "3000", 10);
 const isProduction = process.env.NODE_ENV === "production";
@@ -38,6 +39,12 @@ const shopify = shopifyApp({
 });
 
 const app = express();
+
+// Enable CORS for embedded app
+app.use(cors({
+  origin: true,
+  credentials: true
+}));
 
 // Auth routes
 app.get(shopify.config.auth.path, shopify.auth.begin());
