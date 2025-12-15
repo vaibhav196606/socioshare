@@ -84,8 +84,14 @@ app.get("/api/products", shopify.validateAuthenticatedSession(), async (req, res
   }
 });
 
-app.get("/api/settings", shopify.validateAuthenticatedSession(), async (req, res) => {
-  const shop = res.locals.shopify.session.shop;
+// Settings endpoints - use shop from query param for embedded app
+app.get("/api/settings", async (req, res) => {
+  const shop = req.query.shop;
+  
+  if (!shop) {
+    return res.status(400).send({ error: "Shop parameter required" });
+  }
+  
   const settingsFile = `settings_${shop.replace(/[^a-zA-Z0-9]/g, '_')}.json`;
   
   const defaultSettings = {
@@ -108,8 +114,13 @@ app.get("/api/settings", shopify.validateAuthenticatedSession(), async (req, res
   }
 });
 
-app.post("/api/settings", shopify.validateAuthenticatedSession(), async (req, res) => {
-  const shop = res.locals.shopify.session.shop;
+app.post("/api/settings", async (req, res) => {
+  const shop = req.query.shop;
+  
+  if (!shop) {
+    return res.status(400).send({ error: "Shop parameter required" });
+  }
+  
   const settingsFile = `settings_${shop.replace(/[^a-zA-Z0-9]/g, '_')}.json`;
   const settings = req.body;
   
