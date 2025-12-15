@@ -76,32 +76,39 @@ export default function App() {
   const [buttonSize, setButtonSize] = useState("medium");
   const [saved, setSaved] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [loadStatus, setLoadStatus] = useState("loading...");
+  const [saveStatus, setSaveStatus] = useState("");
 
   // Load settings on mount
   useEffect(() => {
     const loadSettings = async () => {
       if (!shop) {
         console.log("No shop found, skipping settings load");
+        setLoadStatus("No shop found in URL");
         setLoading(false);
         return;
       }
       try {
         const apiUrl = `https://web-production-ffa40.up.railway.app/api/settings?shop=${encodeURIComponent(shop)}`;
         console.log("Loading settings from:", apiUrl);
+        setLoadStatus(`Fetching from: ${apiUrl}`);
         const response = await fetch(apiUrl, {
           mode: "cors",
           credentials: "omit",
         });
         console.log("Load response status:", response.status);
+        setLoadStatus(`Response: ${response.status}`);
         if (response.ok) {
           const data = await response.json();
           console.log("Loaded settings:", data);
           if (data.platforms) setSelectedPlatforms(data.platforms);
           if (data.buttonStyle) setButtonStyle(data.buttonStyle);
           if (data.buttonSize) setButtonSize(data.buttonSize);
+          setLoadStatus(`Loaded! Shop: ${shop}`);
         }
       } catch (error) {
         console.error("Failed to load settings:", error);
+        setLoadStatus(`Error: ${error.message}`);
       } finally {
         setLoading(false);
       }
@@ -124,11 +131,12 @@ export default function App() {
   const handleSave = useCallback(async () => {
     if (!shop) {
       console.error("No shop found in URL");
-      alert("Error: No shop found in URL. Shop param: " + shop);
+      setSaveStatus("Error: No shop found");
       return;
     }
     try {
       console.log("Saving settings for shop:", shop);
+      setSaveStatus("Saving...");
       const apiUrl = `https://web-production-ffa40.up.railway.app/api/settings?shop=${encodeURIComponent(shop)}`;
       console.log("API URL:", apiUrl);
       const response = await fetch(apiUrl, {
@@ -143,25 +151,27 @@ export default function App() {
         }),
       });
       console.log("Save response status:", response.status);
+      setSaveStatus(`Response: ${response.status}`);
       const text = await response.text();
       console.log("Save response text:", text);
       let data;
       try {
         data = JSON.parse(text);
       } catch (e) {
-        alert("API returned non-JSON: " + text.substring(0, 200));
+        setSaveStatus("Error: API returned non-JSON");
         return;
       }
       console.log("Save response data:", data);
       if (response.ok) {
         setSaved(true);
+        setSaveStatus("Saved successfully!");
         setTimeout(() => setSaved(false), 3000);
       } else {
-        alert("Save failed: " + JSON.stringify(data));
+        setSaveStatus("Save failed: " + JSON.stringify(data));
       }
     } catch (error) {
       console.error("Failed to save settings:", error);
-      alert("Save error: " + error.message);
+      setSaveStatus("Error: " + error.message);
     }
   }, [shop, selectedPlatforms, buttonStyle, buttonSize]);
 
@@ -175,6 +185,15 @@ export default function App() {
       }}
     >
       <Layout>
+        {/* Debug status banner */}
+        <Layout.Section>
+          <Banner tone="info" title="API Status">
+            <p>Shop: {shop || "Not found"}</p>
+            <p>Load: {loadStatus}</p>
+            {saveStatus && <p>Save: {saveStatus}</p>}
+          </Banner>
+        </Layout.Section>
+
         {saved && (
           <Layout.Section>
             <Banner
