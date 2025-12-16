@@ -21,32 +21,35 @@ import {
 // Railway backend URL
 const API_BASE = "https://web-production-ffa40.up.railway.app";
 
-// API request - simple XHR that works in embedded iframe
-const apiRequest = (method, url, body = null) => {
-  return new Promise((resolve, reject) => {
-    const xhr = new XMLHttpRequest();
-    xhr.open(method, url, true);
-    xhr.setRequestHeader("Content-Type", "application/json");
-    xhr.onload = () => {
-      if (xhr.status >= 200 && xhr.status < 300) {
-        try {
-          resolve({ ok: true, status: xhr.status, data: JSON.parse(xhr.responseText) });
-        } catch (e) {
-          resolve({ ok: true, status: xhr.status, data: xhr.responseText });
-        }
-      } else {
-        resolve({ ok: false, status: xhr.status, data: xhr.responseText });
-      }
+// API request using fetch - App Bridge automatically injects session tokens
+const apiRequest = async (method, url, body = null) => {
+  try {
+    const options = {
+      method,
+      headers: {
+        "Content-Type": "application/json",
+      },
     };
-    xhr.onerror = () => reject(new Error("Network error"));
-    xhr.ontimeout = () => reject(new Error("Request timeout"));
-    xhr.timeout = 10000;
+    
     if (body) {
-      xhr.send(JSON.stringify(body));
-    } else {
-      xhr.send();
+      options.body = JSON.stringify(body);
     }
-  });
+    
+    // Use fetch - App Bridge automatically adds Authorization header with session token
+    const response = await fetch(url, options);
+    
+    let data;
+    try {
+      data = await response.json();
+    } catch {
+      data = await response.text();
+    }
+    
+    return { ok: response.ok, status: response.status, data };
+  } catch (error) {
+    console.error("API request error:", error);
+    throw error;
+  }
 };
 
 // Get shop from URL params (check multiple possible params)
